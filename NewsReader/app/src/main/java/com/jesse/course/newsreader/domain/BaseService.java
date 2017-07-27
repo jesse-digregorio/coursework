@@ -18,7 +18,7 @@ public abstract class BaseService<InterfaceType> {
     private OkHttpClient mOkClient;
     private InterfaceType mService = null;
 
-    public BaseService(final Class<InterfaceType> interfaceClass, String baseUrl) {
+    BaseService(final Class<InterfaceType> interfaceClass, String baseUrl) {
         mInterfaceClass = interfaceClass;
         mOkClient = getOkHttpClient();
         mBaseUrl = baseUrl;
@@ -26,7 +26,7 @@ public abstract class BaseService<InterfaceType> {
         initService();
     }
 
-    public void initService() {
+    private void initService() {
         try {
             OkHttpClient.Builder clientBuilder = mOkClient.newBuilder();
 
