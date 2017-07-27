@@ -4,8 +4,8 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteStatement;
 import android.os.AsyncTask;
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
@@ -22,12 +22,18 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
 
-public class MainActivity extends AppCompatActivity {
+import butterknife.BindView;
+import butterknife.ButterKnife;
+import butterknife.Unbinder;
 
-    ArrayList<String> titles = new ArrayList<>();
-    ArrayList<String> content = new ArrayList<>();
-    ListView listView;
-    ArrayAdapter arrayAdapter;
+public class MainActivity extends AppCompatActivity {
+    
+    @BindView(R.id.listView)
+    ListView mListView;
+    Unbinder mUnbinder;
+
+    ArrayList<String> titles = new ArrayList<>(20);
+    ArrayList<String> content = new ArrayList<>(20);
 
     SQLiteDatabase articlesDb;
 
@@ -35,32 +41,27 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        mUnbinder = ButterKnife.bind(this);
 
-        listView = (ListView) findViewById(R.id.listView);
-        arrayAdapter = new ArrayAdapter(this, android.R.layout.simple_list_item_1, titles);
-        listView.setAdapter(arrayAdapter);
+        ArrayAdapter<String> arrayAdapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, titles);
+        mListView.setAdapter(arrayAdapter);
 
         articlesDb = this.openOrCreateDatabase("Articles", MODE_PRIVATE, null);
         articlesDb.execSQL("CREATE TABLE IF NOT EXISTS articles (id INTEGER PRIMARY KEY, articleId INTEGER, articleTitle VARCHAR, articleContent VARCHAR)");
 
-        updateListView();
-
-        DownloadTask task = new DownloadTask();
-        try {
-            task.execute("https://hacker-news.firebaseio.com/v0/topstories.json?print=pretty");
-        }
-        catch (Exception e) {
-            e.printStackTrace();
-        }
-
     }
 
-    public void updateListView() {
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        mUnbinder.unbind();
+    }
 
+    private void updateListView() {
         Cursor c = articlesDb.rawQuery("SELECT * FROM articles", null);
 
         int contentIndex = c.getColumnIndex("articleContent");
-        int titleIndex   = c.getColumnIndex("articleTitle");
+        int titleIndex = c.getColumnIndex("articleTitle");
 
         if (c.moveToFirst()) {
             titles.clear();
@@ -71,11 +72,12 @@ public class MainActivity extends AppCompatActivity {
                 content.add(c.getString(contentIndex));
             } while (c.moveToNext());
 
-            arrayAdapter.notifyDataSetChanged();
+            ((ArrayAdapter) mListView.getAdapter()).notifyDataSetChanged();
         }
+        c.close();
     }
 
-    public class DownloadTask extends AsyncTask<String, Void, String> {
+    private class DownloadTask extends AsyncTask<String, Void, String> {
 
 
         @Override
@@ -103,7 +105,7 @@ public class MainActivity extends AppCompatActivity {
 
                 JSONArray jsonArray = new JSONArray(result);
 
-                int numberOfItems = jsonArray.length() > 20 ? 20 : jsonArray.length();
+                int numberOfItems = jsonArray.length() > 1 ? 1 : jsonArray.length();
 
                 for (int i = 0; i < numberOfItems; i++) {
 
@@ -126,14 +128,14 @@ public class MainActivity extends AppCompatActivity {
                     //Log.i("ArticleInfo", articleInfo);
                     JSONObject jsonObject = new JSONObject(articleInfo);
 
-                    articlesDb.execSQL("DELETE FROM articles");
+                    //articlesDb.execSQL("DELETE FROM articles");
 
                     if (!jsonObject.isNull("title") && !jsonObject.isNull("url")) {
                         String articleTitle = jsonObject.getString("title");
-                        String articleUrl   = jsonObject.getString("url");
+                        String articleUrl = jsonObject.getString("url");
 
-                        //Log.i("ArticleTitle", articleTitle);
-                        //Log.i("ArticleUrl", articleUrl);
+                        Log.i("ArticleTitle", articleTitle);
+                        Log.i("ArticleUrl", articleUrl);
 
                         url = new URL(articleUrl);
                         urlConnection = (HttpURLConnection) url.openConnection();
@@ -157,11 +159,8 @@ public class MainActivity extends AppCompatActivity {
                         statement.bindString(3, articleContent);
 
                         statement.execute();
-
                     }
-
                 }
-
             } catch (MalformedURLException e) {
                 e.printStackTrace();
             } catch (IOException e) {
