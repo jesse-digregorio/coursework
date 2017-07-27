@@ -12,7 +12,7 @@ public interface NewsReaderService {
     @GET("v0/topstories.json?print=pretty")
     List<Integer> getRecentArticlesList();
 
-    @GET("v0/item/{id}.json?print=pretty")
-    Article getArticle(@Path("id") int id);
+    @GET("v0/item/{articleId}.json?print=pretty")
+    Article getArticle(@Path("articleId") int articleId);
 
 }
