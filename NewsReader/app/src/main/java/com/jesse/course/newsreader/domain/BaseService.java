@@ -15,7 +15,7 @@ public abstract class BaseService<InterfaceType> {
 
     private final Class<InterfaceType> mInterfaceClass;
     private final String mBaseUrl;
-    private final OkHttpClient mOkClient;
+    private OkHttpClient mOkClient;
     private InterfaceType mService = null;
 
     public BaseService(final Class<InterfaceType> interfaceClass, String baseUrl) {
@@ -49,10 +49,11 @@ public abstract class BaseService<InterfaceType> {
 
     private OkHttpClient getOkHttpClient() {
         if(mOkClient == null) {
-            OkHttpClient.Builder mOkClient = new OkHttpClient.Builder();
-            mOkClient.connectTimeout(HTTP_TIMEOUT, HTTP_TIMEOUT_UNITS);
-            mOkClient.readTimeout(HTTP_TIMEOUT, HTTP_TIMEOUT_UNITS);
-            mOkClient.writeTimeout(HTTP_TIMEOUT, HTTP_TIMEOUT_UNITS);
+            OkHttpClient.Builder okClientBuilder = new OkHttpClient.Builder();
+            okClientBuilder.connectTimeout(HTTP_TIMEOUT, HTTP_TIMEOUT_UNITS);
+            okClientBuilder.readTimeout(HTTP_TIMEOUT, HTTP_TIMEOUT_UNITS);
+            okClientBuilder.writeTimeout(HTTP_TIMEOUT, HTTP_TIMEOUT_UNITS);
+            mOkClient = okClientBuilder.build();
         }
         return mOkClient;
     }
