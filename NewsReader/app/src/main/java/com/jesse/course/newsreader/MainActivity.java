@@ -10,9 +10,13 @@ import android.util.Log;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
 
+import com.jesse.course.newsreader.domain.NewsReaderApi;
+import com.jesse.course.newsreader.model.Article;
+
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.reactivestreams.Publisher;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -21,19 +25,30 @@ import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.List;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.Unbinder;
+import io.reactivex.Flowable;
+import io.reactivex.Observable;
+import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.disposables.CompositeDisposable;
+import io.reactivex.functions.Function;
+import io.reactivex.internal.operators.flowable.FlowableConcatArray;
+import io.reactivex.subjects.PublishSubject;
 
 public class MainActivity extends AppCompatActivity {
-    
+
     @BindView(R.id.listView)
     ListView mListView;
     Unbinder mUnbinder;
 
-    ArrayList<String> titles = new ArrayList<>(20);
-    ArrayList<String> content = new ArrayList<>(20);
+    NewsReaderApi mApiService;
+
+    List<Article> articles = new ArrayList<>(20);
+    List<String> titles = new ArrayList<>(20);
+    List<String> content = new ArrayList<>(20);
 
     SQLiteDatabase articlesDb;
 
@@ -43,12 +58,11 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         mUnbinder = ButterKnife.bind(this);
 
-        ArrayAdapter<String> arrayAdapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, titles);
-        mListView.setAdapter(arrayAdapter);
+        initDb();
+        initApi();
+        initListView();
 
-        articlesDb = this.openOrCreateDatabase("Articles", MODE_PRIVATE, null);
-        articlesDb.execSQL("CREATE TABLE IF NOT EXISTS articles (id INTEGER PRIMARY KEY, articleId INTEGER, articleTitle VARCHAR, articleContent VARCHAR)");
-
+        fetchArticles();
     }
 
     @Override
@@ -57,11 +71,25 @@ public class MainActivity extends AppCompatActivity {
         mUnbinder.unbind();
     }
 
+    private void initDb() {
+        articlesDb = this.openOrCreateDatabase("Articles", MODE_PRIVATE, null);
+        articlesDb.execSQL("CREATE TABLE IF NOT EXISTS articles (id INTEGER PRIMARY KEY, articleId INTEGER, articleTitle VARCHAR, articleContent VARCHAR)");
+    }
+
+    private void initApi() {
+        mApiService = new NewsReaderApi("https://hacker-news.firebaseio.com/");
+    }
+
+    private void initListView() {
+        ArrayAdapter<String> arrayAdapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, titles);
+        mListView.setAdapter(arrayAdapter);
+    }
+
     private void updateListView() {
         Cursor c = articlesDb.rawQuery("SELECT * FROM articles", null);
 
-        int contentIndex = c.getColumnIndex("articleContent");
         int titleIndex = c.getColumnIndex("articleTitle");
+        int contentIndex = c.getColumnIndex("articleContent");
 
         if (c.moveToFirst()) {
             titles.clear();
@@ -69,12 +97,27 @@ public class MainActivity extends AppCompatActivity {
 
             do {
                 titles.add(c.getString(titleIndex));
-                content.add(c.getString(contentIndex));
             } while (c.moveToNext());
 
             ((ArrayAdapter) mListView.getAdapter()).notifyDataSetChanged();
         }
         c.close();
+    }
+
+    private void fetchArticles() {
+        mApiService.API()
+                .getRecentArticlesList()
+                .observeOn(AndroidSchedulers.mainThread())
+                .flatMapIterable(articleId -> articleId)
+                .take(20)
+                .flatMap(articleId -> mApiService.API()
+                        .getArticle(articleId)
+                        .doOnNext(this::saveArticle)
+                ).subscribe();
+    }
+
+    private void saveArticle(Article article) {
+        Log.i("Article - Author", article.author);
     }
 
     private class DownloadTask extends AsyncTask<String, Void, String> {
