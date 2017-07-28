@@ -41,11 +41,9 @@ public abstract class BaseService<InterfaceType> {
      */
     private void initService() {
         try {
-            OkHttpClient.Builder clientBuilder = mOkClient.newBuilder();
-
             Retrofit retrofit = new Retrofit.Builder()
                     .baseUrl(mBaseUrl)
-                    .client(clientBuilder.build())
+                    .client(mOkClient)
                     .addCallAdapterFactory(RxJava2CallAdapterFactory.createWithScheduler(Schedulers.io()))
                     .addConverterFactory(GsonConverterFactory.create())
                     .build();
