@@ -34,8 +34,8 @@ public abstract class BaseService<InterfaceType> {
 
     /**
      * InitService - We need to setup an Http client for retrofit to be
-     * able to use with our service. Note: the Retrofit.Builder
-     * build() call is slightly expensive. Be sure to keep these
+     * able to use with our service. Note: the Retrofit
+     * create() call is slightly expensive. Be sure to keep these
      * calls minimized (i.e. this service should be a singleton
      * instance).
      */
