@@ -6,7 +6,7 @@ import java.util.List;
 
 public class Article {
 
-    @SerializedName("by")
+    @SerializedName("by") // Ask me why I did this! I'd love to explain it further :)
     public String author;
     public int descendants;
     public int id;

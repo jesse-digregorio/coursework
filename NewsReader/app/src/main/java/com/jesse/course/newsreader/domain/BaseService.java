@@ -8,6 +8,11 @@ import retrofit2.Retrofit;
 import retrofit2.adapter.rxjava2.RxJava2CallAdapterFactory;
 import retrofit2.converter.gson.GsonConverterFactory;
 
+/**
+ * BaseService - Use this abstract class to setup api services. Typically, there would be one service
+ *      setup per base API URL. (Example being NewsReaderApi, as it only uses the single firebase url)
+ * @param <InterfaceType> RetroFit Service interface
+ */
 public abstract class BaseService<InterfaceType> {
 
     private static final int HTTP_TIMEOUT = 10;
@@ -26,6 +31,13 @@ public abstract class BaseService<InterfaceType> {
         initService();
     }
 
+    /**
+     * InitService - We need to setup an Http client for retrofit to be
+     *      able to use with our service. Note: the Retrofit.Builder
+     *      build() call is slightly expensive. Be sure to keep these
+     *      calls minimized (i.e. this service should be a singleton
+     *      instance).
+     */
     private void initService() {
         try {
             OkHttpClient.Builder clientBuilder = mOkClient.newBuilder();
@@ -47,6 +59,11 @@ public abstract class BaseService<InterfaceType> {
         return mService;
     }
 
+    /**
+     * Building an OkHttpClient for http calls
+     * You can configure the http settings here, as observed below with defaults.
+     * @return a pre-configured httpclient
+     */
     private OkHttpClient getOkHttpClient() {
         if(mOkClient == null) {
             OkHttpClient.Builder okClientBuilder = new OkHttpClient.Builder();
