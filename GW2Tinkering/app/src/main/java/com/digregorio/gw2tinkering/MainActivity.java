@@ -7,6 +7,7 @@ import android.util.Log;
 import com.digregorio.gw2tinkering.domain.GWTinkerApi;
 import com.digregorio.gw2tinkering.model.World;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import io.reactivex.android.schedulers.AndroidSchedulers;
@@ -18,7 +19,9 @@ import io.reactivex.schedulers.Schedulers;
 public class MainActivity extends AppCompatActivity {
 
     GWTinkerApi mApiService;
-    private CompositeDisposable mComposit = new CompositeDisposable();
+    private CompositeDisposable mComposite = new CompositeDisposable();
+
+    private ArrayList<World> mWorldList = new ArrayList<World>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -26,7 +29,10 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         mApiService = new GWTinkerApi();
-        mComposit.add(fetchWorldDisposable());
+        //mComposite.add(fetchWorldDisposable());
+        mComposite.add(fetchWorldListDisposable());
+
+        Log.i("Total Worlds", Integer.toString(mWorldList.size()));
 
     }
 
@@ -34,8 +40,18 @@ public class MainActivity extends AppCompatActivity {
     public void onDestroy() {
         super.onDestroy();
 
-        mComposit.clear();
+        mComposite.clear();
     }
+
+    private Disposable fetchWorldListDisposable() {
+
+        return mApiService.API().getWorlds()
+                .doOnNext(worlds -> mWorldList = worlds)
+                .subscribeOn(Schedulers.newThread())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe();
+    }
+
 
     private Disposable fetchWorldDisposable() {
 
@@ -65,5 +81,6 @@ public class MainActivity extends AppCompatActivity {
             Log.e("Observer", t.getMessage());
         }
     }
+
 
 }

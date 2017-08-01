@@ -5,20 +5,19 @@ package com.digregorio.gw2tinkering.domain;
  */
 
 import com.digregorio.gw2tinkering.model.World;
-
-import java.util.ArrayList;
 import java.util.List;
-import io.reactivex.Observable;
+import io.reactivex.Flowable;
 
+import io.reactivex.Observable;
 import retrofit2.http.GET;
 import retrofit2.http.Path;
 
 public interface GWTinkerService {
 
     @GET("/v2/worlds")
-    Observable<ArrayList<Integer>> getAllWorldIds();
+    Observable<List<Integer>> getAllWorldIds();
 
     @GET("/v2/worlds?ids=all")
-    Observable<ArrayList<World>> getWorlds();
+    Observable<List<World>> getWorlds();
 
 }
