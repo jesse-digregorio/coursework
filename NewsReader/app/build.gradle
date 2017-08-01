@@ -21,6 +21,10 @@ android {
         }
     }
 
+    dataBinding {
+        enabled = true
+    }
+
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_1_8
         targetCompatibility JavaVersion.VERSION_1_8
@@ -50,6 +54,10 @@ dependencies {
     compile "io.reactivex.rxjava2:rxjava:$rxjava_version"
     compile "io.reactivex.rxjava2:rxandroid:$rxandroid_version"
     compile "com.squareup.retrofit2:adapter-rxjava2:$rxretrofit_version"
+
+    // RxBindings
+    compile 'com.jakewharton.rxbinding2:rxbinding:2.0.0'
+    compile 'com.jakewharton.rxbinding2:rxbinding-recyclerview-v7:2.0.0'
 
     // Butterknife!
     compile "com.jakewharton:butterknife:$butterknife_version"
