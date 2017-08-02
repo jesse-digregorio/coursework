@@ -16,9 +16,9 @@ import retrofit2.http.Path;
 public interface GWTinkerService {
 
     @GET("/v2/worlds")
-    Observable<ArrayList<Integer>> getAllWorldIds();
+    Observable<List<Integer>> getAllWorldIds();
 
     @GET("/v2/worlds?ids=all")
-    Observable<ArrayList<World>> getWorlds();
+    Observable<List<World>> getWorlds();
 
 }

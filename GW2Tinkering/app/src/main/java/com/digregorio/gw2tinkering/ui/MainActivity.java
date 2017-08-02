@@ -1,15 +1,22 @@
-package com.digregorio.gw2tinkering;
+package com.digregorio.gw2tinkering.ui;
 
+import android.support.annotation.BinderThread;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
+import android.widget.ArrayAdapter;
+import android.widget.ListView;
 
+import com.digregorio.gw2tinkering.R;
 import com.digregorio.gw2tinkering.domain.GWTinkerApi;
 import com.digregorio.gw2tinkering.model.World;
+import com.digregorio.gw2tinkering.ui.adapter.WorldAdapter;
 
 import java.util.ArrayList;
 import java.util.List;
 
+import butterknife.BindView;
+import butterknife.ButterKnife;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.CompositeDisposable;
 import io.reactivex.disposables.Disposable;
@@ -21,16 +28,26 @@ public class MainActivity extends AppCompatActivity {
     GWTinkerApi mApiService;
     private CompositeDisposable mComposite = new CompositeDisposable();
 
-    private ArrayList<World> mWorldList = new ArrayList<World>();
+    private List<World> mWorldList = new ArrayList<World>();
+
+    @BindView(R.id.wolrdListView)
+    ListView mWorldListView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        ButterKnife.bind(this);
+
+        ArrayAdapter<World> arrayAdapter = new WorldAdapter(this, R.layout.world_item_row, mWorldList);
+        mWorldListView.setAdapter(arrayAdapter);
+
         mApiService = new GWTinkerApi();
         //mComposite.add(fetchWorldDisposable());
         mComposite.add(fetchWorldListDisposable());
+
+
 
         Log.i("Total Worlds", Integer.toString(mWorldList.size()));
 
@@ -46,12 +63,25 @@ public class MainActivity extends AppCompatActivity {
     private Disposable fetchWorldListDisposable() {
 
         return mApiService.API().getWorlds()
-                .doOnNext(worlds -> mWorldList = worlds)
+                //.doOnNext(worlds -> mWorldList = worlds)
                 .subscribeOn(Schedulers.newThread())
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe();
+                //.subscribe(new WorldListObserver());
+                .subscribe(this::updateWorldList, this::updateListViewError, this::updateListView);
     }
 
+    private void updateWorldList(List<World> worldList) {
+        mWorldList = worldList;
+    }
+
+    private void updateListView() {
+        Log.i("Total Worlds Observer", Integer.toString(mWorldList.size()));
+        ((ArrayAdapter) mWorldListView.getAdapter()).notifyDataSetChanged();
+    }
+
+    private void updateListViewError(Throwable throwable) {
+
+    }
 
     private Disposable fetchWorldDisposable() {
 
@@ -64,23 +94,6 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
-    public class WorldListObserver extends DisposableObserver<List<World>> {
-
-        public List<World> worldList;
-
-        @Override
-        public void onNext(List<World> t) {
-            worldList = t;
-        }
-        @Override
-        public void onComplete() {
-            Log.i("Observer", "WorldListObserver Done");
-        }
-        @Override
-        public void onError(Throwable t) {
-            Log.e("Observer", t.getMessage());
-        }
-    }
 
 
 }
