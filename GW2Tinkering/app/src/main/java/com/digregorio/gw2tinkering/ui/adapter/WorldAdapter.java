@@ -13,41 +13,35 @@ import android.widget.TextView;
 import com.digregorio.gw2tinkering.R;
 import com.digregorio.gw2tinkering.model.World;
 
-import java.lang.reflect.Array;
 import java.util.List;
-
-/**
- * Created by X2V0 on 8/2/2017.
- */
 
 public class WorldAdapter extends ArrayAdapter<World> {
 
-    private List<World> mWorlds;
+    final Context mContext;
+    List<World> mWorlds;
 
     public WorldAdapter(@NonNull Context context, @LayoutRes int resource, @NonNull List<World> worlds) {
         super(context, resource, worlds);
 
+        mContext = context;
         mWorlds = worlds;
-
-
     }
 
     @NonNull
     @Override
     public View getView(int position, @Nullable View view, @NonNull ViewGroup parent) {
-        //return super.getView(position, view, parent);
-
-        LayoutInflater inflater = (LayoutInflater) getContext().getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-        view = inflater.inflate(R.layout.world_item_row, parent);
-        TextView nameTextView = (TextView) view.findViewById(R.id.txtName);
-        TextView populationTextView = (TextView) view.findViewById(R.id.txtPopulation);
+        view = LayoutInflater.from(mContext).inflate(R.layout.world_item_row, parent, false);
+        TextView nameTextView = view.findViewById(R.id.txtName);
+        TextView populationTextView = view.findViewById(R.id.txtPopulation);
 
         nameTextView.setText(mWorlds.get(position).name);
         populationTextView.setText(mWorlds.get(position).population);
 
         return view;
-
     }
 
-
+    @Override
+    public int getCount() {
+        return mWorlds != null ? mWorlds.size() : 0;
+    }
 }

@@ -1,8 +1,7 @@
 package com.digregorio.gw2tinkering.ui;
 
-import android.support.annotation.BinderThread;
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
@@ -20,7 +19,6 @@ import butterknife.ButterKnife;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.CompositeDisposable;
 import io.reactivex.disposables.Disposable;
-import io.reactivex.observers.DisposableObserver;
 import io.reactivex.schedulers.Schedulers;
 
 public class MainActivity extends AppCompatActivity {
@@ -47,10 +45,7 @@ public class MainActivity extends AppCompatActivity {
         //mComposite.add(fetchWorldDisposable());
         mComposite.add(fetchWorldListDisposable());
 
-
-
         Log.i("Total Worlds", Integer.toString(mWorldList.size()));
-
     }
 
     @Override
@@ -61,7 +56,6 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private Disposable fetchWorldListDisposable() {
-
         return mApiService.API().getWorlds()
                 //.doOnNext(worlds -> mWorldList = worlds)
                 .subscribeOn(Schedulers.newThread())
@@ -71,7 +65,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void updateWorldList(List<World> worldList) {
-        mWorldList = worldList;
+        mWorldList.addAll(worldList);
     }
 
     private void updateListView() {
@@ -80,11 +74,10 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void updateListViewError(Throwable throwable) {
-
+        throwable.printStackTrace();
     }
 
     private Disposable fetchWorldDisposable() {
-
         return mApiService.API().getWorlds()
                 .flatMapIterable(world -> world)
                 .doOnNext(world -> Log.i("API Output", world.name))
@@ -92,8 +85,4 @@ public class MainActivity extends AppCompatActivity {
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe();
     }
-
-
-
-
 }
